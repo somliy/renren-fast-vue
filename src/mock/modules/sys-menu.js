@@ -494,6 +494,19 @@ var navDataList = [
         'orderNum': 7,
         'open': null,
         'list': null
+      },
+      {
+        'menuId': 31,
+        'parentId': 1,
+        'parentName': null,
+        'name': '扩展用户',
+        'url': 'sys/ex_user',
+        'perms': '',
+        'type': 1,
+        'icon': 'log',
+        'orderNum': 7,
+        'open': null,
+        'list': null
       }
     ]
   }

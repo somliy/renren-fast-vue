@@ -4,9 +4,9 @@
       <el-form-item>
         <el-input v-model="dataForm.userName" placeholder="用户名" clearable></el-input>
       </el-form-item>
-      <el-form-item>
+        <el-form-item>
         <el-button @click="getDataList()">查询</el-button>
-        <el-button v-if="isAuth('sys:user:save')" type="primary" @click="addOrUpdateHandle()">新增</el-button>
+        <el-button type="primary" @click="addOrUpdateHandle()">新增</el-button>
         <el-button v-if="isAuth('sys:user:delete')" type="danger" @click="deleteHandle()"
                    :disabled="dataListSelections.length <= 0">批量删除
         </el-button>
@@ -25,60 +25,36 @@
         width="50">
       </el-table-column>
       <el-table-column
-        prop="userId"
+        prop="id"
         header-align="center"
         align="center"
-        width="80"
+        width="330"
         label="ID">
       </el-table-column>
       <el-table-column
         prop="username"
         header-align="center"
         align="center"
+        width="330"
         label="用户名">
       </el-table-column>
       <el-table-column
-        prop="email"
-        header-align="center"
+        prop="password"
         align="center"
-        label="邮箱">
-      </el-table-column>
-      <el-table-column
-        prop="mobile"
-        header-align="center"
-        align="center"
-        label="手机号">
-      </el-table-column>
-      <el-table-column
-        prop="status"
-        header-align="center"
-        align="center"
-        label="状态">
-        <template slot-scope="scope">
-          <el-tag v-if="scope.row.status === 0" size="small" type="danger">禁用</el-tag>
-          <el-tag v-else size="small">正常</el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column
-        prop="createTime"
-        header-align="center"
-        align="center"
-        width="180"
-        label="创建时间">
+        width="330"
+        label="密码">
       </el-table-column>
       <el-table-column
         fixed="right"
         header-align="center"
         align="center"
-        width="150"
+        min-width="220"
         label="操作">
         <template slot-scope="scope">
-          <el-button v-if="isAuth('sys:user:update')" type="text" size="small" @click="addOrUpdateHandle(scope.row.userId)">
-            修改
+          <el-button type="text" size="small"
+                     @click="addOrUpdateHandle(scope.row.id)">修改
           </el-button>
-          <el-button v-if="isAuth('sys:user:delete')" type="text" size="small" @click="deleteHandle(scope.row.userId)">
-            删除
-          </el-button>
+          <el-button type="text" size="small" @click="deleteHandle(scope.row.userId)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -97,35 +73,35 @@
 </template>
 
 <script>
-  import AddOrUpdate from './user-add-or-update'
+  import AddOrUpdate from './ex_user-add-update.vue'
 
   export default {
     data () {
       return {
+        dataListLoading: false,
+        pageIndex: 1,
+        pageSize: 10,
+        totalPage: 0,
         dataForm: {
           userName: ''
         },
         dataList: [],
-        pageIndex: 1,
-        pageSize: 10,
-        totalPage: 0,
-        dataListLoading: false,
         dataListSelections: [],
         addOrUpdateVisible: false
       }
     },
-    components: {
-      AddOrUpdate
-    },
     activated () {
       this.getDataList()
+    },
+    components: {
+      AddOrUpdate
     },
     methods: {
       // 获取数据列表
       getDataList () {
         this.dataListLoading = true
         this.$http({
-          url: this.$http.adornUrl('/sys/user/list'),
+          url: this.$http.adornUrl('/sys/user/page'),
           method: 'get',
           params: this.$http.adornParams({
             'page': this.pageIndex,
@@ -134,14 +110,18 @@
           })
         }).then(({data}) => {
           if (data && data.code === 0) {
-            this.dataList = data.page.list
-            this.totalPage = data.page.totalCount
+            this.dataList = data.data.records
+            this.totalPage = data.data.total
           } else {
             this.dataList = []
             this.totalPage = 0
           }
           this.dataListLoading = false
         })
+      },
+      // 多选
+      selectionChangeHandle (val) {
+        this.dataListSelections = val
       },
       // 每页数
       sizeChangeHandle (val) {
@@ -153,10 +133,6 @@
       currentChangeHandle (val) {
         this.pageIndex = val
         this.getDataList()
-      },
-      // 多选
-      selectionChangeHandle (val) {
-        this.dataListSelections = val
       },
       // 新增 / 修改
       addOrUpdateHandle (id) {
@@ -196,6 +172,10 @@
         }).catch(() => {
         })
       }
-    }
+    },
+    name: 'ex_user'
   }
 </script>
+<style scoped>
+
+</style>

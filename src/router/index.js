@@ -51,7 +51,7 @@ const mainRoutes = {
 const router = new Router({
   mode: 'hash',
   scrollBehavior: () => ({ y: 0 }),
-  isAddDynamicMenuRoutes: false, // 是否已经添加动态(菜单)路由
+  isAddDynamicMenuRoutes: true, // 是否已经添加动态(菜单)路由
   routes: globalRoutes.concat(mainRoutes)
 })
 
@@ -68,10 +68,11 @@ router.beforeEach((to, from, next) => {
       params: http.adornParams()
     }).then(({data}) => {
       if (data && data.code === 0) {
-        fnAddDynamicMenuRoutes(data.menuList)
+        fnAddDynamicMenuRoutes(data.data)
         router.options.isAddDynamicMenuRoutes = true
-        sessionStorage.setItem('menuList', JSON.stringify(data.menuList || '[]'))
-        sessionStorage.setItem('permissions', JSON.stringify(data.permissions || '[]'))
+        sessionStorage.setItem('menuList', JSON.stringify(data.data || '[]'))
+        // sessionStorage.setItem('permissions', JSON.stringify(data.data.children.permissions || '[]'))
+        sessionStorage.setItem('permissions', JSON.stringify('[]'))
         next({ ...to, replace: true })
       } else {
         sessionStorage.setItem('menuList', '[]')
@@ -106,33 +107,81 @@ function fnCurrentRouteType (route, globalRoutes = []) {
  * @param {*} menuList 菜单列表
  * @param {*} routes 递归创建的动态(菜单)路由
  */
-function fnAddDynamicMenuRoutes (menuList = [], routes = []) {
+// function fnAddDynamicMenuRoutes (menuList = [], routes = []) {
+//   var temp = []
+//   for (var i = 0; i < menuList.length; i++) {
+//     if (menuList[i].list && menuList[i].list.length >= 1) {
+//       temp = temp.concat(menuList[i].list)
+//     } else if (menuList[i].url && /\S/.test(menuList[i].url)) {
+//       menuList[i].url = menuList[i].url.replace(/^\//, '')
+//       var route = {
+//         path: menuList[i].url.replace('/', '-'),
+//         component: null,
+//         name: menuList[i].url.replace('/', '-'),
+//         meta: {
+//           menuId: menuList[i].menuId,
+//           title: menuList[i].name,
+//           isDynamic: true,
+//           isTab: true,
+//           iframeUrl: ''
+//         }
+//       }
+//       // url以http[s]://开头, 通过iframe展示
+//       if (isURL(menuList[i].url)) {
+//         route['path'] = `i-${menuList[i].menuId}`
+//         route['name'] = `i-${menuList[i].menuId}`
+//         route['meta']['iframeUrl'] = menuList[i].url
+//       } else {
+//         try {
+//           route['component'] = _import(`modules/${menuList[i].url}`) || null
+//         } catch (e) {}
+//       }
+//       routes.push(route)
+//     }
+//   }
+//   if (temp.length >= 1) {
+//     fnAddDynamicMenuRoutes(temp, routes)
+//   } else {
+//     mainRoutes.name = 'main-dynamic'
+//     mainRoutes.children = routes
+//     router.addRoutes([
+//       mainRoutes,
+//       { path: '*', redirect: { name: '404' } }
+//     ])
+//     sessionStorage.setItem('dynamicMenuRoutes', JSON.stringify(mainRoutes.children || '[]'))
+//     console.log('\n')
+//     console.log('%c!<-------------------- 动态(菜单)路由 s -------------------->', 'color:blue')
+//     console.log(mainRoutes.children)
+//     console.log('%c!<-------------------- 动态(菜单)路由 e -------------------->', 'color:blue')
+//   }
+// }
+function fnAddDynamicMenuRoutes (data = [], routes = []) {
   var temp = []
-  for (var i = 0; i < menuList.length; i++) {
-    if (menuList[i].list && menuList[i].list.length >= 1) {
-      temp = temp.concat(menuList[i].list)
-    } else if (menuList[i].url && /\S/.test(menuList[i].url)) {
-      menuList[i].url = menuList[i].url.replace(/^\//, '')
+  for (var i = 0; i < data.length; i++) {
+    if (data[i].children && data[i].children.length >= 1) {
+      temp = temp.concat(data[i].children)
+    } else if (data[i].component && /\S/.test(data[i].component)) {
+      data[i].component = data[i].component.replace(/^\//, '')
       var route = {
-        path: menuList[i].url.replace('/', '-'),
+        path: data[i].component.replace('/', '-'),
         component: null,
-        name: menuList[i].url.replace('/', '-'),
+        name: data[i].component.replace('/', '-'),
         meta: {
-          menuId: menuList[i].menuId,
-          title: menuList[i].name,
+          menuId: data[i].id,
+          title: data[i].name,
           isDynamic: true,
           isTab: true,
           iframeUrl: ''
         }
       }
       // url以http[s]://开头, 通过iframe展示
-      if (isURL(menuList[i].url)) {
-        route['path'] = `i-${menuList[i].menuId}`
-        route['name'] = `i-${menuList[i].menuId}`
-        route['meta']['iframeUrl'] = menuList[i].url
+      if (isURL(data[i].path)) {
+        route['path'] = `i-${data[i].id}`
+        route['name'] = `i-${data[i].id}`
+        route['meta']['iframeUrl'] = data[i].component
       } else {
         try {
-          route['component'] = _import(`modules/${menuList[i].url}`) || null
+          route['component'] = _import(`modules/${data[i].component}`) || null
         } catch (e) {}
       }
       routes.push(route)
