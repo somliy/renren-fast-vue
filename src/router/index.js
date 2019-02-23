@@ -51,7 +51,7 @@ const mainRoutes = {
 const router = new Router({
   mode: 'hash',
   scrollBehavior: () => ({ y: 0 }),
-  isAddDynamicMenuRoutes: true, // 是否已经添加动态(菜单)路由
+  isAddDynamicMenuRoutes: false, // 是否已经添加动态(菜单)路由
   routes: globalRoutes.concat(mainRoutes)
 })
 
@@ -68,11 +68,13 @@ router.beforeEach((to, from, next) => {
       params: http.adornParams()
     }).then(({data}) => {
       if (data && data.code === 0) {
-        fnAddDynamicMenuRoutes(data.data)
+        fnAddDynamicMenuRoutes(data.data.data)
         router.options.isAddDynamicMenuRoutes = true
-        sessionStorage.setItem('menuList', JSON.stringify(data.data || '[]'))
-        // sessionStorage.setItem('permissions', JSON.stringify(data.data.children.permissions || '[]'))
-        sessionStorage.setItem('permissions', JSON.stringify('[]'))
+        sessionStorage.setItem('menuList', JSON.stringify(data.data.data || '[]'))
+        sessionStorage.setItem('permissions', JSON.stringify(data.data.permissions || '[]'))
+        console.log('%c!<-------------------- 222 s -------------------->', 'color:blue')
+        console.log(sessionStorage)
+        console.log('%c!<-------------------- 222 e -------------------->', 'color:blue')
         next({ ...to, replace: true })
       } else {
         sessionStorage.setItem('menuList', '[]')
@@ -175,10 +177,15 @@ function fnAddDynamicMenuRoutes (data = [], routes = []) {
         }
       }
       // url以http[s]://开头, 通过iframe展示
-      if (isURL(data[i].path)) {
+      if (isURL(data[i].component)) {
         route['path'] = `i-${data[i].id}`
         route['name'] = `i-${data[i].id}`
         route['meta']['iframeUrl'] = data[i].component
+        // console.log('%c!<-------------------- 222 s -------------------->', 'color:blue')
+        // console.log(route['path'])
+        // console.log(route['name'])
+        // console.log(route['meta']['iframeUrl'])
+        // console.log('%c!<-------------------- 222 e -------------------->', 'color:blue')
       } else {
         try {
           route['component'] = _import(`modules/${data[i].component}`) || null
@@ -189,6 +196,9 @@ function fnAddDynamicMenuRoutes (data = [], routes = []) {
   }
   if (temp.length >= 1) {
     fnAddDynamicMenuRoutes(temp, routes)
+    // console.log('%c!<-------------------- 11111 s -------------------->', 'color:blue')
+    // console.log(temp)
+    // console.log('%c!<-------------------- 11111 e -------------------->', 'color:blue')
   } else {
     mainRoutes.name = 'main-dynamic'
     mainRoutes.children = routes

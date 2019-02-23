@@ -93,7 +93,7 @@
               }
             }
             tab = {
-              menuId: route.meta.menuId || route.name,
+              menuId: route.meta.id || route.name,
               name: route.name,
               title: route.meta.title,
               type: isURL(route.meta.iframeUrl) ? 'iframe' : 'module',
@@ -103,7 +103,7 @@
             }
             this.mainTabs = this.mainTabs.concat(tab)
           }
-          this.menuActiveName = tab.menuId + ''
+          this.menuActiveName = tab.id + ''
           this.mainTabsActiveName = tab.name
         }
       }
